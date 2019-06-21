@@ -5,10 +5,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.python.platform
 
-data_folder = 'C:\\Users\\shinb\\OneDrive\\ドキュメント\\Python Scripts\\data_image_classifer'
-
 def lrelu(x, alpha=0.01):
-    return tf.maximum(alpha * x, x)
+    return tf.maximum(alpha * x, x)    
 
 # 識別ラベルの数(今回は3つ)
 NUM_CLASSES = 3
@@ -18,11 +16,11 @@ IMAGE_SIZE = 28
 IMAGE_PIXELS = IMAGE_SIZE*IMAGE_SIZE*3
 
 # 学習用データ
-train = data_folder + '/_train/data.txt'
+train = './data/_train/data.txt'
 # 検証用データ
-test = data_folder + '/_test/data.txt'
+test = './data/_test/data.txt'
 # TensorBoardのデータ保存先フォルダ
-train_dir = data_folder
+train_dir = './data'
 # 学習訓練の試行回数
 max_steps = 100
 # 1回の学習で何枚の画像を使うか

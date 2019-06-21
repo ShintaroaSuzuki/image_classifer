@@ -3,11 +3,9 @@ import numpy as np
 import glob
 import os
 
-data_folder = 'C:\\Users\\shinb\\OneDrive\\ドキュメント\\Python Scripts\\data_image_classifer'
-
 def cut_face():
     # ディレクトリリスト
-    dirs = glob.glob(data_folder + "/*")
+    dirs = glob.glob("./data/*")
 
     # OpenCVのデフォルトの分類器のpath。(https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xmlのファイルを使う)
     cascade_path = 'C:/Users/shinb/Anaconda3/Library/etc/haarcascades/haarcascade_frontalface_default.xml'
@@ -27,7 +25,7 @@ def cut_face():
 
         # 集めた画像データから顔が検知されたら、切り取り、保存する。
         for i in range(image_count):
-            img = cv2.imread(input_data_path + '\\' + input_data_path.split('\\')[-1] + '_' + str(i) + '.jpg', cv2.IMREAD_COLOR)
+            img = cv2.imread(input_data_path + '/' + input_data_path.split('\\')[-1] + '_' + str(i) + '.jpg', cv2.IMREAD_COLOR)
             try:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             except:
@@ -42,7 +40,7 @@ def cut_face():
                     y = rect[1]
                     w = rect[2]
                     h = rect[3]
-                    cv2.imwrite(save_path + '\\' + input_data_path.split('\\')[-1] + '_cutted' + '_' + str(face_detect_count) + '.jpg', img[y:y+h, x:x+w])
+                    cv2.imwrite(save_path + '/' + input_data_path.split('\\')[-1] + '_cutted' + '_' + str(face_detect_count) + '.jpg', img[y:y+h, x:x+w])
                     face_detect_count = face_detect_count + 1
             else:
                 print(input_data_path.split('\\')[-1] + '_'  + str(i) + ':NoFace')

@@ -6,8 +6,6 @@ from PIL import Image
 import unicodedata
 import os
 
-data_folder = 'C:\\Users\\shinb\\OneDrive\\ドキュメント\\Python Scripts\\data_image_classifer'
-
 class Google:
     def __init__(self):
         self.GOOGLE_SEARCH_URL = 'https://www.google.co.jp/search'
@@ -120,10 +118,10 @@ def download_img(keyword=None, maximum=None):
     google = Google()
     cwd = os.getcwd()
     try:
-        os.chdir(data_folder)
+        os.chdir('./data')
     except FileNotFoundError :
-        os.makedirs(data_folder)
-        os.chdir(data_folder)
+        os.makedirs('./data')
+        os.chdir('./data')
     dir = os.getcwd()
     missing_img = 0  # 初期値
     for i, searchword in enumerate(keywords):

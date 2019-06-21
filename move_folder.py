@@ -3,11 +3,9 @@ import shutil
 import glob
 import random
 
-data_folder = 'C:\\Users\\shinb\\OneDrive\\ドキュメント\\Python Scripts\\data_image_classifer'
-
 def move_file():
     project_dir = os.getcwd()
-    os.chdir(data_folder)
+    os.chdir('./data')
     dirs = glob.glob('./*')
     names = []
     cutted_dirs = []
