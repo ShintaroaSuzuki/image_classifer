@@ -19,6 +19,14 @@ HUMAN_NAMES = {
 
 #指定した画像(img_path)を学習結果(ckpt_path)を用いて判定する
 def evaluation(img_path, ckpt_path):
+    try:
+        os.makedirs('./static/images/face_detect/')
+    except FileExistsError:
+        pass
+    try:
+        os.makedirs('./static/images/cut_face/')
+    except FileExistsError:
+        pass
     # GraphのReset(らしいが、何をしているのかよくわかっていない…)
     tf.reset_default_graph()
     # 画像を開く
@@ -63,8 +71,8 @@ def evaluation(img_path, ckpt_path):
     image.append(img.flatten().astype(np.float32)/255.0)
     # numpy形式に変換し、TensorFlowで処理できるようにする
     image = np.asarray(image)
-    # 入力画像に対して、各ラベルの確率を出力して返す(main.pyより呼び出し)
-    logits = main.inference(image, 1.0)
+    # 入力画像に対して、各ラベルの確率を出力して返す(deep_learning.pyより呼び出し)
+    logits = deep_learning.inference(image, 1.0)
     # We can just use 'c.eval()' without passing 'sess'
     sess = tf.InteractiveSession()
     # restore(パラメーター読み込み)の準備
@@ -97,4 +105,4 @@ def evaluation(img_path, ckpt_path):
 
 # コマンドラインからのテスト用
 if __name__ == '__main__':
-    evaluation('testimage.jpg', './model2.ckpt')
+    evaluation('testimage.jpg', './model.ckpt')
