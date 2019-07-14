@@ -8,7 +8,7 @@ def cut_face():
     dirs = glob.glob("./data/*")
 
     # OpenCVのデフォルトの分類器のpath。(https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xmlのファイルを使う)
-    cascade_path = 'C:/Users/shinb/Anaconda3/Library/etc/haarcascades/haarcascade_frontalface_default.xml'
+    cascade_path = 'C:/Users/shinb/AppData/Local/Continuum/anaconda3/Library/etc/haarcascades/haarcascade_frontalface_default.xml'
     faceCascade = cv2.CascadeClassifier(cascade_path)
 
     for dir in dirs:
