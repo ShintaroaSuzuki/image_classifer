@@ -4,6 +4,8 @@ import glob
 import random
 import re
 
+train_rate = 0.7
+
 pattern = r'(?<=\\).+(?=_cutted)'
 project_dir = os.getcwd()
 os.chdir('./data')
@@ -25,7 +27,6 @@ for i, name in enumerate(names):
     os.makedirs(test_dir, exist_ok=True)
     cutted_files = glob.glob(cutted_dirs[i] + '/*')
     random.shuffle(cutted_files)
-    train_rate = 0.9
     for i, file in enumerate(cutted_files):
         if i < len(cutted_files) * train_rate:
             shutil.move(file, train_dir)
@@ -35,4 +36,3 @@ for i, name in enumerate(names):
 os.chdir(project_dir)
 
 print('訓練データ、検証データに分類完了')
-cutted_files

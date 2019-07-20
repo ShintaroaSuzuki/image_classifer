@@ -6,7 +6,7 @@ import tensorflow as tf
 import tensorflow.python.platform
 
 def lrelu(x, alpha=0.01):
-    return tf.maximum(alpha * x, x)    
+    return tf.maximum(alpha * x, x)
 
 # 識別ラベルの数(今回は3つ)
 NUM_CLASSES = 3
