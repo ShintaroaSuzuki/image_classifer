@@ -18,13 +18,17 @@ LOG_DIR = './logs'
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # 学習訓練の試行回数
-epochs = 30
+epochs = 300
 # 1回の学習で何枚の画像を使うか
 batch_size = 50
 # 学習率、小さすぎると学習が進まないし、大きすぎても誤差が収束しなかったり発散したりしてダメとか。繊細
 learning_rate = 1e-04
 # LeakyReLUのパラメータ
-alpha = 0.01
+alpha = 0.15
+
+# parameter of dropout
+drop_rate1 = 0.7
+drop_rate2 = 0.7
 
 # 識別ラベルの数(今回は3つ)
 NUM_CLASSES = 3
@@ -80,53 +84,58 @@ x = tf.placeholder(tf.float32, [None, IMAGE_SIZE, IMAGE_SIZE, 3])
 # now declare the output data placeholder - 3 digits
 y = tf.placeholder(tf.float32, [None, NUM_CLASSES])
 
-def create_new_conv_layer(input_data, num_input_channels, num_filters, filter_shape, pool_shape, name):
-    # setup the filter input shape for tf.nn.conv_2d
-    conv_filt_shape = [filter_shape[0], filter_shape[1], num_input_channels,
-                      num_filters]
-
-    # initialise weights and bias for the filter
-    weights = tf.Variable(tf.truncated_normal(conv_filt_shape, stddev=0.03),
-                                      name=name+'_W')
-    bias = tf.Variable(tf.truncated_normal([num_filters]), name=name+'_b')
-
-    # setup the convolutional layer operation
-    out_layer = tf.nn.conv2d(input_data, weights, [1, 1, 1, 1], padding='SAME')
-
-    # add the bias
-    out_layer += bias
-
-    # apply a ReLU non-linear activation
-    out_layer = tf.nn.relu(out_layer)
-
-    # now perform max pooling
-    ksize = [1, pool_shape[0], pool_shape[1], 1]
-    strides = [1, 2, 2, 1]
-    out_layer = tf.nn.max_pool(out_layer, ksize=ksize, strides=strides,
-                               padding='SAME')
-
-    return out_layer
-
-# tensorflowのbool値（学習時と推論時を区別）
-is_training = tf.placeholder_with_default(False,shape=[])
+# batch_normalization_bool
+is_training = tf.placeholder(dtype=bool, name='is_training')
 
 # BatchNormalization
-# BN1 = tf.layers.BatchNormalization()
-# BN2 = tf.layers.BatchNormalization()
+def batch_norm(X, axes, shape, is_training):
+    """
+    バッチ正規化
+    平均と分散による各レイヤの入力を正規化(白色化)する
+    """
+    if is_training is False:
+        return X
+    epsilon = 1e-5
+    # 平均と分散
+    mean, variance = tf.nn.moments(X, axes)
+    # scaleとoffsetも学習対象
+    scale = tf.Variable(tf.ones([shape]))
+    offset = tf.Variable(tf.zeros([shape]))
+    return tf.nn.batch_normalization(X, mean, variance, offset, scale, epsilon)
 
 # create some convolutional layers
-layer1 = create_new_conv_layer(x, 3, 16, [3, 3], [2, 2], name='layer1')
-layer2 = create_new_conv_layer(layer1, 16, 32, [3, 3], [2, 2], name='layer2')
-layer3 = create_new_conv_layer(layer2, 32, 16, [3, 3], [2, 2], name='layer3')
+wc1 = tf.Variable(tf.truncated_normal([3 ,3 ,3, 16], stddev=sqrt(2 / 3)), name='wc1')
+bc1 = tf.Variable(tf.truncated_normal([16], name='bc1'))
+conv_layer1 = tf.nn.conv2d(x, wc1, [1, 1, 1, 1], padding='SAME')
+conv_layer1 += bc1
+conv_layer1 = batch_norm(conv_layer1, [0,1,2], 16, is_training)
+conv_layer1 = tf.nn.relu(conv_layer1)
+conv_layer1 = tf.nn.max_pool(conv_layer1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
-flattened = tf.reshape(layer3, [-1, 8 * 8 * 16])
+wc2 = tf.Variable(tf.truncated_normal([3 ,3 ,16, 32], stddev=sqrt(2 / 16)), name='wc2')
+bc2 = tf.Variable(tf.truncated_normal([32], name='bc2'))
+conv_layer2 = tf.nn.conv2d(conv_layer1, wc2, [1, 1, 1, 1], padding='SAME')
+conv_layer2 += bc2
+conv_layer2 = batch_norm(conv_layer2, [0,1,2], 32, is_training)
+conv_layer2 = tf.nn.relu(conv_layer2)
+conv_layer2 = tf.nn.max_pool(conv_layer2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+
+wc3 = tf.Variable(tf.truncated_normal([3 ,3 ,32, 16], stddev=sqrt(2 / 32)), name='wc3')
+bc3 = tf.Variable(tf.truncated_normal([16], name='bc3'))
+conv_layer3 = tf.nn.conv2d(conv_layer2, wc3, [1, 1, 1, 1], padding='SAME')
+conv_layer3 += bc3
+conv_layer3 = batch_norm(conv_layer3, [0,1,2], 16, is_training)
+conv_layer3 = tf.nn.relu(conv_layer3)
+conv_layer3 = tf.nn.max_pool(conv_layer3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+
+flattened = tf.reshape(conv_layer3, [-1, 8 * 8 * 16])
 
 # setup some weights and bias values for this layer, then activate with ReLU
-wd1 = tf.Variable(tf.truncated_normal([8 * 8 * 16, 1024], stddev=0.03), name='wd1')
+wd1 = tf.Variable(tf.truncated_normal([8 * 8 * 16, 1024], stddev=sqrt(2 / 16)), name='wd1')
 bd1 = tf.Variable(tf.truncated_normal([1024], stddev=0.01), name='bd1')
 dense_layer1 = tf.matmul(flattened, wd1) + bd1
-# dense_layer1 = tf.cond(is_training,lambda: BN1(dense_layer1,training=True),lambda: BN1(dense_layer1,training=False))
-dense_layer1 = tf.nn.relu(dense_layer1)
+dense_layer1 = batch_norm(dense_layer1, [0], 1024, is_training)
+dense_layer1 = tf.nn.leaky_relu(dense_layer1, alpha=alpha)
 drop_prob1 = tf.placeholder(tf.float32)
 dense_layer1 = tf.nn.dropout(dense_layer1, rate=drop_prob1)
 
@@ -134,8 +143,8 @@ dense_layer1 = tf.nn.dropout(dense_layer1, rate=drop_prob1)
 wd2 = tf.Variable(tf.truncated_normal([1024, 256], stddev=sqrt(2 / 1024)), name='wd2')
 bd2 = tf.Variable(tf.truncated_normal([256], stddev=0.01), name='bd2')
 dense_layer2 = tf.matmul(dense_layer1, wd2) + bd2
-# dense_layer2 = tf.cond(is_training,lambda: BN2(dense_layer2,training=True),lambda: BN2(dense_layer2,training=False))
-dense_layer2 = tf.nn.relu(dense_layer2)
+dense_layer2 = batch_norm(dense_layer2, [0], 256, is_training)
+dense_layer2 = tf.nn.leaky_relu(dense_layer2, alpha=alpha)
 drop_prob2 = tf.placeholder(tf.float32)
 dense_layer2 = tf.nn.dropout(dense_layer2, rate=drop_prob2)
 
@@ -174,18 +183,18 @@ with tf.Session() as sess:
             end = start + batch_size
             batch_x, batch_y = X_[start: end], Y_[start: end]
             _, c = sess.run([optimizer, cross_entropy],
-                            feed_dict={x: batch_x, y: batch_y, drop_prob1: 0.3, drop_prob2: 0.3})
+                            feed_dict={x: batch_x, y: batch_y, drop_prob1: drop_rate1, drop_prob2: drop_rate2, is_training: True})
             avg_loss += c / total_batch
         train_acc = sess.run(accuracy,
-                       feed_dict={x: train_image, y: train_label, drop_prob1: 0, drop_prob2: 0})
+                       feed_dict={x: train_image, y: train_label, drop_prob1: drop_rate1, drop_prob2: drop_rate2, is_training: True})
         test_acc = sess.run(accuracy,
-                       feed_dict={x: test_image, y: test_label, drop_prob1: 0, drop_prob2: 0})
+                       feed_dict={x: test_image, y: test_label, drop_prob1: 0, drop_prob2: 0, is_training: False})
         print("Epoch:", (epoch + 1), "loss =", "{:.4f}".format(avg_loss), "train accuracy: {:.4f}".format(train_acc), "test accuracy: {:.4f}".format(test_acc))
         history['acc'].append(train_acc)
         history['val_acc'].append(test_acc)
 
     print("\nTraining complete!")
-    print("accuracy: {:.4f}".format(sess.run(accuracy, feed_dict={x: test_image, y: test_label, drop_prob1: 0, drop_prob2: 0})))
+    print(sess.run(accuracy, feed_dict={x: test_image, y: test_label, drop_prob1: 0, drop_prob2: 0}))
 
 plt.plot(history['acc'])
 plt.plot(history['val_acc'])
@@ -195,4 +204,4 @@ plt.ylabel('accuracy')
 plt.legend(['acc', 'val_acc'], loc='lower right')
 plt.show()
 
-# tensorboard --logdir=C:\Users\shinb\OneDrive\ドキュメント\_Python Scripts\image_classifer\logs
+# tensorboard --logdir=C:\Users\shinb\OneDrive\ドキュメント\_Python_Scripts\image_classifer\logs

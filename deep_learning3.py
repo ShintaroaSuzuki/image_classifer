@@ -10,7 +10,7 @@ train = './data/_train/data.txt'
 test = './data/_test/data.txt'
 
 # 学習訓練の試行回数
-epochs = 300
+epochs = 30
 # 1回の学習で何枚の画像を使うか
 batch_size = 50
 # 学習率、小さすぎると学習が進まないし、大きすぎても誤差が収束しなかったり発散したりしてダメとか。繊細
