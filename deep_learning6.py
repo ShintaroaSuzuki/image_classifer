@@ -1,5 +1,6 @@
 # 層の数やハイパーパラメータを調整したり、DropoutやBatchNormalizationを行ったり、He初期化を行ったり、活性化関数を工夫したりして精度を上げる。
 # 最高90%ほどマーク（Qiitaに転がっているアイドルの顔画像識別と同じ程度の精度）
+# 学習終了時に86.47%マーク
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 from keras.utils import np_utils
 import numpy as np
