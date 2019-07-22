@@ -1,5 +1,5 @@
 # 層の数やハイパーパラメータを調整したり、DropoutやBatchNormalizationを行ったり、He初期化を行ったり、活性化関数を工夫したりして精度を上げる。
-# 精度85%程度（Qiitaに転がっているアイドルの顔画像識別と同じ程度の精度）
+# 最高90%ほどマーク（Qiitaに転がっているアイドルの顔画像識別と同じ程度の精度）
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 from keras.utils import np_utils
 import numpy as np
@@ -18,11 +18,11 @@ LOG_DIR = './logs'
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # 学習訓練の試行回数
-epochs = 300
+epochs = 500
 # 1回の学習で何枚の画像を使うか
 batch_size = 50
 # 学習率、小さすぎると学習が進まないし、大きすぎても誤差が収束しなかったり発散したりしてダメとか。繊細
-learning_rate = 1e-04
+learning_rate = 1e-03
 # LeakyReLUのパラメータ
 alpha = 0.15
 
