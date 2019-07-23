@@ -7,7 +7,7 @@ import random
 import deep_learning
 
 # OpenCVのデフォルトの顔の分類器のpath
-cascade_path = 'C:/Users/shinb/Anaconda3/Library/etc/haarcascades/haarcascade_frontalface_default.xml'
+cascade_path = 'C:/Users/shinb/AppData/Local/Continuum/anaconda3/Library/etc/haarcascades/haarcascade_frontalface_default.xml'
 faceCascade = cv2.CascadeClassifier(cascade_path)
 
 # 識別ラベルと各ラベル番号に対応する名前

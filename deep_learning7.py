@@ -2,6 +2,8 @@
 # 91%ほどマーク（Qiitaに転がっているアイドルの顔画像識別を上回っている）
 # 学習終了時に86.47%マーク
 # test_accが指定の値を超えたら学習が終了するようにコード書いたらよいのでは？
+# evaluateが使えるように変更
+
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 from keras.utils import np_utils
 import numpy as np
