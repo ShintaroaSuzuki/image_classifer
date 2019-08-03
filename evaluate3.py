@@ -5,6 +5,7 @@ import os
 from keras.utils import np_utils
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 from math import sqrt
+from sklearn.utils import shuffle
 
 # 識別ラベルの数(今回は3つ)
 NUM_CLASSES = 3
@@ -16,7 +17,7 @@ alpha = 0.15
 cascade_path = 'C:/Users/shinb/AppData/Local/Continuum/anaconda3/Library/etc/haarcascades/haarcascade_frontalface_default.xml'
 faceCascade = cv2.CascadeClassifier(cascade_path)
 
-"""
+
 img = cv2.imread('testimage.jpg', cv2.IMREAD_COLOR)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -28,14 +29,6 @@ if len(face) > 0:
         w = rect[2]
         h = rect[3]
         cv2.imwrite('testimage' + str(i) + '.jpg', img[y:y+h, x:x+w])
-
-img = load_img('data/_train/ikutaerika/ikutaerika_cutted_10.jpg', target_size=(IMAGE_SIZE,IMAGE_SIZE))
-img_array  = img_to_array(img)
-
-# 整形
-img_array = np.asarray([img_array])
-img_array = img_array.astype('float32')
-"""
 
 # 学習用データ
 train = './data/_train/data.txt'
@@ -60,6 +53,8 @@ with open(test, mode='r') as f:
         # ラベルを追加
         test_label.append(l[1])
     # 整形
+    test_image, test_label = shuffle(test_image, test_label)
+    test_image.append(img_to_array(load_img("testimage0.jpg", target_size=(IMAGE_SIZE,IMAGE_SIZE))))
     test_image = np.asarray(test_image)
     test_image = test_image.astype('float32')
     test_image = test_image / 255.0
@@ -162,12 +157,8 @@ sess = tf.Session()
 
 saver.restore(sess, 'model.ckpt')
 
-print(sess.run(y_, feed_dict={x: test_image, y: test_label, drop_prob1: 0, drop_prob2: 0, is_training: False}))
+print(sess.run(y_, feed_dict={x: test_image, y: test_label, drop_prob1: 0, drop_prob2: 0, is_training: False})[-1])
 
-# res = sess.run(conv_layer1, feed_dict={x: img_array, is_training: False, drop_prob1: 0.0, drop_prob2: 0.0})
+# 渡すデータの数によって予測結果が変わってしまう。テストデータの順序に予測が依存してしまっているわけではない。
 
-# print(res)
-
-# 毎回同じ結果しか出ない。原因を解明中。
-
-# まず精度を出力してみて、問題がなければ検証データの渡し方のエラー、問題があれば読み込みのエラーが考えられる。
+# テストデータの最後に付け足すような形にするとうまく予測できる
